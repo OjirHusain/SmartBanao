@@ -1,0 +1,6 @@
+{
+  "name": "SmartBanao",
+  "description": "Learn Smart. Create More. Achieve More. High-quality digital products, ebooks, video courses, and resource bundles.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
