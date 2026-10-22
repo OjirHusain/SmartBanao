@@ -35,7 +35,7 @@ export const LegalViews: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
       {page === 'privacy' && (
         <article className="prose prose-slate max-w-none space-y-6 text-slate-700 text-xs sm:text-sm leading-relaxed">
           <div className="border-b border-slate-200 pb-4">
-            <span className="text-xs font-bold text-sky-600 uppercase tracking-wider">Legal Notice</span>
+            <span className="text-xs font-bold text-[#87A96B] uppercase tracking-wider">Legal Notice</span>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">Privacy Policy</h1>
             <p className="text-xs text-slate-500 mt-1">Effective Date: October 2026</p>
           </div>
@@ -66,7 +66,7 @@ export const LegalViews: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
       {page === 'terms' && (
         <article className="prose prose-slate max-w-none space-y-6 text-slate-700 text-xs sm:text-sm leading-relaxed">
           <div className="border-b border-slate-200 pb-4">
-            <span className="text-xs font-bold text-sky-600 uppercase tracking-wider">Terms of Service</span>
+            <span className="text-xs font-bold text-[#87A96B] uppercase tracking-wider">Terms of Service</span>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">Terms and Conditions</h1>
             <p className="text-xs text-slate-500 mt-1">Last Updated: October 2026</p>
           </div>
@@ -90,7 +90,7 @@ export const LegalViews: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
       {page === 'refund' && (
         <article className="prose prose-slate max-w-none space-y-6 text-slate-700 text-xs sm:text-sm leading-relaxed">
           <div className="border-b border-slate-200 pb-4">
-            <span className="text-xs font-bold text-sky-600 uppercase tracking-wider">Purchase Protection</span>
+            <span className="text-xs font-bold text-[#87A96B] uppercase tracking-wider">Purchase Protection</span>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">Refund & Access Policy</h1>
             <p className="text-xs text-slate-500 mt-1">Standard Digital Goods Policy</p>
           </div>
@@ -105,7 +105,7 @@ export const LegalViews: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
           <section className="space-y-3">
             <h2 className="text-base font-bold text-slate-900">2. Technical Delivery Issues & Remediation</h2>
             <p>
-              If you encounter any difficulty accessing your purchased materials, file corruption, or transaction discrepancies, our support team will regenerate your download authorizations or manually resolve your access within 24 business hours. Contact us at <a href="mailto:support@smartbanao.com" className="text-sky-600 underline">support@smartbanao.com</a>.
+              If you encounter any difficulty accessing your purchased materials, file corruption, or transaction discrepancies, our support team will regenerate your download authorizations or manually resolve your access within 24 business hours. Contact us at <a href="mailto:support@smartbanao.com" className="text-[#87A96B] underline">support@smartbanao.com</a>.
             </p>
           </section>
         </article>
@@ -114,7 +114,7 @@ export const LegalViews: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
       {page === 'disclaimer' && (
         <article className="prose prose-slate max-w-none space-y-6 text-slate-700 text-xs sm:text-sm leading-relaxed">
           <div className="border-b border-slate-200 pb-4">
-            <span className="text-xs font-bold text-sky-600 uppercase tracking-wider">Transparency</span>
+            <span className="text-xs font-bold text-[#87A96B] uppercase tracking-wider">Transparency</span>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">Digital Product Disclaimer</h1>
             <p className="text-xs text-slate-500 mt-1">Educational & Informational Notice</p>
           </div>
@@ -133,7 +133,7 @@ export const LegalViews: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
       {page === 'about' && (
         <article className="prose prose-slate max-w-none space-y-6 text-slate-700 text-xs sm:text-sm leading-relaxed">
           <div className="border-b border-slate-200 pb-4">
-            <span className="text-xs font-bold text-sky-600 uppercase tracking-wider">About Us</span>
+            <span className="text-xs font-bold text-[#87A96B] uppercase tracking-wider">About Us</span>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">About SmartBanao</h1>
             <p className="text-xs text-slate-500 mt-1">"Learn Smart. Create More. Achieve More."</p>
           </div>
@@ -162,7 +162,7 @@ export const LegalViews: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
       {page === 'contact' && (
         <div className="space-y-8">
           <div className="border-b border-slate-200 pb-4">
-            <span className="text-xs font-bold text-sky-600 uppercase tracking-wider">Get In Touch</span>
+            <span className="text-xs font-bold text-[#87A96B] uppercase tracking-wider">Get In Touch</span>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">Contact Customer Support</h1>
             <p className="text-xs text-slate-500 mt-1">We’re here to assist with purchases, licensing, and access.</p>
           </div>
@@ -171,10 +171,10 @@ export const LegalViews: React.FC<LegalPageProps> = ({ page, onNavigate }) => {
             <div className="md:col-span-5 space-y-4 text-xs text-slate-600">
               <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
                 <div className="flex items-start gap-3">
-                  <Mail className="w-4 h-4 text-sky-600 mt-0.5 shrink-0" />
+                  <Mail className="w-4 h-4 text-[#87A96B] mt-0.5 shrink-0" />
                   <div>
                     <span className="font-bold text-slate-900 block">Direct Support Email</span>
-                    <a href="mailto:support@smartbanao.com" className="text-sky-600 underline">
+                    <a href="mailto:support@smartbanao.com" className="text-[#87A96B] underline">
                       support@smartbanao.com
                     </a>
                   </div>

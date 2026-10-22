@@ -40,16 +40,16 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8">
-      {/* Header */}
+      {/* Header with Walnut Brown and Sage Green branding */}
       <div>
-        <span className="text-xs font-bold uppercase tracking-wider text-sky-600">
-          SmartBanao Catalog
+        <span className="text-[11px] font-bold uppercase tracking-widest text-[#87A96B]">
+          Official Editions · SmartBanao Collection
         </span>
-        <h1 className="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mt-1">
-          Digital Products & Resources
+        <h1 className="text-2xl sm:text-4xl font-extrabold text-[#5A3E2B] tracking-tight mt-1 font-serif">
+          Digital Products & Practical Guides
         </h1>
-        <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-xl">
-          Practical guides, attorney-vetted contracts, production code libraries, and video courses.
+        <p className="text-xs sm:text-sm text-stone-600 mt-1 max-w-xl">
+          Carefully crafted workbooks, checklists, and guides designed to turn rough thoughts into finished digital products.
         </p>
       </div>
 
@@ -63,15 +63,14 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
             { id: 'ebook', label: 'E-Books' },
             { id: 'video_course', label: 'Video Courses' },
             { id: 'template', label: 'Templates' },
-            { id: 'zip_pack', label: 'ZIP Resource Packs' },
           ].map((cat) => (
             <button
               key={cat.id}
               onClick={() => setActiveCategory(cat.id)}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors whitespace-nowrap shrink-0 ${
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
                 activeCategory === cat.id
-                  ? 'bg-slate-900 text-white shadow-xs'
-                  : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                  ? 'bg-[#5A3E2B] text-white shadow-xs'
+                  : 'bg-white text-stone-600 hover:bg-[#FAF8F5] border border-stone-200'
               }`}
             >
               {cat.label}
@@ -82,20 +81,20 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
         {/* Search & Sort */}
         <div className="flex items-center gap-3">
           <div className="relative flex-1 sm:w-64">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
+            <Search className="w-3.5 h-3.5 text-stone-400 absolute left-3 top-2.5" />
             <input
               type="text"
               placeholder="Search products..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-8 pr-3 py-1.5 text-xs bg-white rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500"
+              className="w-full pl-8 pr-3 py-1.5 text-xs bg-white rounded-lg border border-stone-200 text-[#5A3E2B] placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-[#87A96B]"
             />
           </div>
 
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as any)}
-            className="px-3 py-1.5 text-xs bg-white rounded-lg border border-slate-200 text-slate-700 focus:outline-none"
+            className="px-3 py-1.5 text-xs bg-white rounded-lg border border-stone-200 text-[#5A3E2B] font-medium focus:outline-none cursor-pointer"
           >
             <option value="popular">Recommended</option>
             <option value="price-asc">Price: Low to High</option>
@@ -106,15 +105,15 @@ export const ProductsView: React.FC<ProductsViewProps> = ({
 
       {/* Product Grid */}
       {filtered.length === 0 ? (
-        <div className="p-12 bg-white rounded-2xl border border-slate-200 text-center space-y-3">
-          <p className="text-sm font-semibold text-slate-800">No matching products found</p>
-          <p className="text-xs text-slate-500">Try adjusting your search terms or filter selection.</p>
+        <div className="p-12 bg-white rounded-2xl border border-stone-200 text-center space-y-3">
+          <p className="text-sm font-semibold text-[#5A3E2B]">No matching products found</p>
+          <p className="text-xs text-stone-500">Try adjusting your search terms or filter selection.</p>
           <button
             onClick={() => {
               setActiveCategory('all');
               setSearchQuery('');
             }}
-            className="text-xs font-semibold text-sky-600 hover:underline"
+            className="text-xs font-semibold text-[#87A96B] hover:text-[#5A3E2B] transition-colors cursor-pointer underline"
           >
             Clear all filters
           </button>

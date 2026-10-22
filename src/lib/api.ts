@@ -41,12 +41,26 @@ async function fetchWithAuth<T>(url: string, options: RequestInit = {}): Promise
   });
 
   if (!response.ok) {
-    let errorMsg = 'An unexpected error occurred';
+    let errorMsg = '';
     try {
       const errorData = await response.json();
-      errorMsg = errorData.error || errorData.message || errorMsg;
+      errorMsg = errorData.error || errorData.message || '';
     } catch {
-      // fallback
+      // Failed to parse JSON, check status
+    }
+
+    if (!errorMsg) {
+      if (response.status === 401) {
+        errorMsg = 'Session expired or authentication required. Please sign in again.';
+      } else if (response.status === 403) {
+        errorMsg = 'Access denied: Administrator privileges required.';
+      } else if (response.status === 404) {
+        errorMsg = 'Requested resource not found.';
+      } else if (response.status >= 500) {
+        errorMsg = 'Server encounter an issue. Please try again shortly.';
+      } else {
+        errorMsg = `Request failed (${response.status} ${response.statusText || 'Error'})`;
+      }
     }
     throw new Error(errorMsg);
   }

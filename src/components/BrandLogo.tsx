@@ -39,18 +39,18 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
   }[size];
 
   const smartColor = light
-    ? 'text-white'
-    : 'text-[#0f1712]';
+    ? 'text-[#FAF8F5]'
+    : 'text-[#5A3E2B]';
 
   const banaoColor = light
-    ? 'bg-gradient-to-r from-emerald-400 to-teal-300 bg-clip-text text-transparent'
-    : 'text-[#1e4d36]';
+    ? 'text-[#87A96B]'
+    : 'text-[#87A96B]';
 
   const dotColor = light
-    ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.9)]'
-    : 'bg-[#23583e] shadow-[0_0_6px_rgba(35,88,62,0.5)]';
+    ? 'bg-[#D5851F] shadow-[0_0_8px_rgba(213,133,31,0.85)]'
+    : 'bg-[#D5851F] shadow-[0_0_6px_rgba(213,133,31,0.65)]';
 
-  const taglineColor = light ? 'text-emerald-300/80' : 'text-[#617467]';
+  const taglineColor = light ? 'text-[#87A96B]/80' : 'text-[#856b5a]';
 
   return (
     <div className="flex flex-col select-none group leading-none">

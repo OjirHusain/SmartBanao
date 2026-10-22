@@ -1,482 +1,549 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  ArrowUpRight,
-  Plus,
-  Minus,
-  Search,
+  ShoppingBag,
+  Eye,
   Check,
-  Sparkles,
-  BookOpen,
-  ShieldCheck,
+  Plus,
   Star,
+  Sparkles,
+  ArrowRight,
+  BookOpen,
+  CheckCircle2,
+  Quote,
+  ShieldCheck,
+  ChevronRight,
 } from 'lucide-react';
-import { Bundle, Product, Review } from '../types/index.ts';
-import { ProductCard } from '../components/ProductCard.tsx';
-import { BundleCard } from '../components/BundleCard.tsx';
+import { Product } from '../types/index.ts';
 import { LookInsideModal } from '../components/LookInsideModal.tsx';
-import { BrandLogo } from '../components/BrandLogo.tsx';
-import { AdBanner } from '../components/AdBanner.tsx';
-import { AdSettings } from '../types/index.ts';
 
 interface HomeViewProps {
   products: Product[];
-  bundles: (Bundle & { included_products?: Product[]; regular_sum?: number })[];
-  reviews: Review[];
+  bundles?: any[];
+  reviews?: any[];
   onSelectProduct: (p: Product) => void;
   onBuyProduct: (p: Product) => void;
-  onSelectBundle: (b: Bundle) => void;
-  onBuyBundle: (b: Bundle) => void;
-  onNavigate: (view: string) => void;
+  onSelectBundle?: (b: any) => void;
+  onBuyBundle?: (b: any) => void;
+  onNavigate?: (view: string) => void;
   userOwnedProductIds: string[];
-  adsSettings?: AdSettings;
+  adsSettings?: any;
   isVipUser?: boolean;
 }
 
+// Wisdom quotes by Acharya Prashant matching the 5 carousel dots from Screenshot 908
+const ACHARYA_QUOTES = [
+  {
+    quote:
+      'व्यवसाय तब ही सफल होता है जब वह सिर्फ़ कमाई नहीं, सेवा का माध्यम बन जाए। जब तुम यह समझ पाओ कि ग्राहक कोई ज़रूरतमंद आत्मा है',
+    highlight: 'सेवा ही सफलता की सच्ची नींव है',
+  },
+  {
+    quote:
+      'सच्ची शिक्षा वह है जो तुम्हें आत्मनिर्भर बनाए और तुम्हारी सोच को स्वतंत्र करे, न कि केवल डिग्री का बोझ थमा दे।',
+    highlight: 'आत्मनिर्भरता और वास्तविक कौशल',
+  },
+  {
+    quote:
+      'जब तुम कुछ ऐसा बनाते हो जो किसी के जीवन को सरल और सार्थक बनाए, तो वह काम कभी व्यर्थ नहीं जाता।',
+    highlight: 'मूल्य सृजन और सार्थक समाधान',
+  },
+  {
+    quote:
+      'दूसरों की नकल करके सफलता नहीं मिलती। अपनी समझ, अपने विवेक और अपनी सच्चाई पर टिके रहो।',
+    highlight: 'मौलिकता में ही अनंत शक्ति है',
+  },
+  {
+    quote:
+      'युवाओं को नौकरी मांगने वाला नहीं, बल्कि मूल्य सृजन करने वाला और आत्मनिर्भर समाधानकर्ता बनना चाहिए।',
+    highlight: 'स्वतंत्र सोच और कर्मनिष्ठा',
+  },
+];
+
 export const HomeView: React.FC<HomeViewProps> = ({
   products,
-  bundles,
-  reviews,
-  onSelectProduct,
   onBuyProduct,
-  onSelectBundle,
-  onBuyBundle,
-  onNavigate,
+  onSelectProduct,
   userOwnedProductIds,
-  adsSettings,
-  isVipUser,
 }) => {
-  const [activeTab, setActiveTab] = useState<string>('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [previewProduct, setPreviewProduct] = useState<Product | null>(null);
+  const [activeQuoteIndex, setActiveQuoteIndex] = useState(0);
+  const [isQuoteFading, setIsQuoteFading] = useState(false);
+  const [addedAnimationId, setAddedAnimationId] = useState<string | null>(null);
 
-  const filteredProducts = products.filter((p) => {
-    if (activeTab === 'ebook' && p.product_type !== 'ebook') return false;
-    if (activeTab === 'template' && p.product_type !== 'template' && p.product_type !== 'pdf') return false;
-    if (activeTab === 'course' && p.product_type !== 'video_course') return false;
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      return p.title.toLowerCase().includes(q) || p.description.toLowerCase().includes(q);
-    }
-    return true;
-  });
+  // Auto-slide quotes carousel with smooth fade transition
+  useEffect(() => {
+    const timer = setInterval(() => {
+      handleNextQuote();
+    }, 7000);
+    return () => clearInterval(timer);
+  }, [activeQuoteIndex]);
 
-  const faqs = [
-    {
-      q: 'Are these one-time purchases?',
-      a: 'Yes, 100%. Every product and bundle is a single one-time payment. There are no recurring subscriptions, surprise renewals, or memberships. Pay once, own it forever.',
-    },
-    {
-      q: 'How will I receive my digital product?',
-      a: 'Immediately after your payment is confirmed, your products appear in your personal "My Library" dashboard. You can download the PDF guides, templates, and stream the video workshops instantly.',
-    },
-    {
-      q: 'Can I access products on my phone?',
-      a: 'Yes. All PDFs, e-books, and video courses are mobile-responsive and formatted to read cleanly on iPhone, Android phones, iPads, tablets, and desktop computers.',
-    },
-    {
-      q: 'Can I get a refund?',
-      a: 'Because digital products are delivered immediately with permanent offline files, we do not offer unconditional refunds. However, if you experience any technical access issues, our support team will help you immediately.',
-    },
-  ];
+  const handleNextQuote = (targetIndex?: number) => {
+    setIsQuoteFading(true);
+    setTimeout(() => {
+      if (typeof targetIndex === 'number') {
+        setActiveQuoteIndex(targetIndex);
+      } else {
+        setActiveQuoteIndex((prev) => (prev + 1) % ACHARYA_QUOTES.length);
+      }
+      setIsQuoteFading(false);
+    }, 250);
+  };
 
-  const scrollToSection = (id: string) => {
-    const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
-    }
+  // Trigger quick tactile spring on purchase
+  const handleBuyWithAnimation = (product: Product) => {
+    setAddedAnimationId(product.id);
+    setTimeout(() => setAddedAnimationId(null), 600);
+    onBuyProduct(product);
+  };
+
+  // The two core products from Screenshot 637
+  const launchKitProduct = products.find(
+    (p) => p.slug === 'digital-product-launch-kit' || p.id === 'prod-launch-kit'
+  ) || {
+    id: 'prod-launch-kit',
+    title: 'Digital Product Launch Kit',
+    slug: 'digital-product-launch-kit',
+    description: 'Keep the essential launch tasks together in one tidy checklist.',
+    short_description: 'Keep the essential launch tasks together in one tidy checklist.',
+    product_type: 'pdf',
+    price: 89,
+    original_price: 349,
+    status: 'published',
+  } as Product;
+
+  const ideaWorkbookProduct = products.find(
+    (p) => p.slug === 'idea-to-action-workbook' || p.id === 'prod-idea-to-action-workbook'
+  ) || {
+    id: 'prod-idea-to-action-workbook',
+    title: 'The Idea-to-Action Workbook',
+    slug: 'idea-to-action-workbook',
+    description: 'Prompts to sort your thoughts and turn one idea into a plan.',
+    short_description: 'Prompts to sort your thoughts and turn one idea into a plan.',
+    product_type: 'pdf',
+    price: 69,
+    original_price: 299,
+    status: 'published',
+  } as Product;
+
+  const scrollToShelf = () => {
+    document.getElementById('section-products-637')?.scrollIntoView({ behavior: 'smooth' });
   };
 
   return (
-    <div className="space-y-16 sm:space-y-24 pb-16 bg-[#faf9f5] text-[#16221c]">
-      {/* ==============================================================
-          1. HERO SECTION (Identical to Screenshot with Enhanced Beauty)
-          ============================================================== */}
-      <section className="pt-8 sm:pt-14 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto text-left">
-        {/* Kicker */}
-        <div className="flex items-center gap-2 text-[11px] font-bold tracking-widest uppercase text-[#54685c] mb-3">
-          <span className="w-2 h-2 rounded-full bg-[#3c7155] animate-pulse" />
-          <span>Small steps. Real progress.</span>
-        </div>
+    <div className="w-full bg-[#FAF8F5] min-h-screen py-4 sm:py-7 px-3 sm:px-4 md:px-6 flex flex-col items-center select-none font-sans">
+      
+      {/* 
+        NO TOGGLE SWITCHER BOX:
+        Rendered as pure, 100% authentic, living website directly in production mode.
+      */}
 
-        {/* Big Headline with artistic underline curve */}
-        <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-[#14231b] leading-[1.05]">
-          Make your next<br />
-          chapter{' '}
-          <span className="text-[#25523d] relative inline-block">
-            happen.
-            <svg
-              className="absolute -bottom-1.5 left-0 w-full h-2.5 text-[#3d7a5b]/40 pointer-events-none"
-              viewBox="0 0 100 8"
-              preserveAspectRatio="none"
-            >
-              <path
-                d="M0,5 Q50,0 100,5"
-                stroke="currentColor"
-                strokeWidth="3.5"
-                fill="none"
-                strokeLinecap="round"
-              />
-            </svg>
-          </span>
-        </h1>
+      <div className="w-full max-w-md sm:max-w-lg md:max-w-xl mx-auto space-y-5 sm:space-y-6 animate-card-entrance">
 
-        {/* Subtitle */}
-        <p className="mt-4 sm:mt-5 text-sm sm:text-base text-[#5c6d62] max-w-xl leading-relaxed">
-          Thoughtfully made digital guides, practical courses and creator resources to help you learn a skill, build something useful, and keep moving.
-        </p>
+        {/* =========================================================================
+            1. TOP HERO BANNER: (IMG 459)
+            "A GOOD PLACE TO BEGIN" / "Your next big idea starts right here."
+            Custom Editorial Palette: Walnut Brown (#5A3E2B), Sage Green (#87A96B), Amber Glow (#D5851F)
+            ========================================================================= */}
+        <section
+          onClick={scrollToShelf}
+          className="group relative w-full rounded-[26px] sm:rounded-[30px] p-5 sm:p-7 overflow-hidden shadow-[0_16px_45px_rgba(90,62,43,0.18)] border border-[#5A3E2B]/40 bg-gradient-to-br from-[#332216] via-[#483121] to-[#243522] text-white cursor-pointer transition-all duration-500 hover:shadow-[0_22px_55px_rgba(90,62,43,0.26)] hover:-translate-y-0.5"
+        >
+          {/* Concentric Organic Curved Ripples matching 459 with Sage and Amber Glow */}
+          <div className="absolute -left-20 -bottom-20 w-80 h-80 rounded-full border border-[#87A96B]/15 pointer-events-none group-hover:scale-105 transition-transform duration-700" />
+          <div className="absolute -left-10 -bottom-10 w-60 h-60 rounded-full border border-[#D5851F]/20 pointer-events-none group-hover:scale-110 transition-transform duration-700" />
+          <div className="absolute left-10 -bottom-4 w-44 h-44 rounded-full bg-[#87A96B]/15 blur-2xl pointer-events-none" />
+          <div className="absolute right-10 -top-8 w-36 h-36 rounded-full bg-[#D5851F]/10 blur-xl pointer-events-none" />
 
-        {/* Buttons */}
-        <div className="mt-6 flex flex-wrap items-center gap-3">
-          <button
-            onClick={() => scrollToSection('shelf-section')}
-            className="px-5 py-3 rounded-full bg-[#1b3428] hover:bg-[#12261d] text-white text-xs sm:text-sm font-semibold flex items-center gap-1.5 transition-all shadow-xs hover:shadow-md hover:scale-[1.02]"
-          >
-            <span>Explore the collection</span>
-            <ArrowUpRight className="w-4 h-4" />
-          </button>
+          {/* Ambient luminous sweep */}
+          <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/5 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
 
-          <button
-            onClick={() => scrollToSection('bundles-section')}
-            className="px-5 py-3 rounded-full bg-white hover:bg-[#f2f1eb] text-[#1b3428] border border-[#dedad0] text-xs sm:text-sm font-semibold transition-all shadow-2xs hover:shadow-xs"
-          >
-            See the bundles
-          </button>
-        </div>
+          <div className="relative z-10 flex items-center justify-between gap-4">
+            {/* Left Column: Text Content */}
+            <div className="space-y-2.5 sm:space-y-3 flex-1 min-w-0 pr-1">
+              {/* Kicker badge with Amber Glow */}
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-[#D5851F] animate-pulse shadow-[0_0_8px_rgba(213,133,31,0.8)]" />
+                <span className="text-[10px] sm:text-[11px] font-bold tracking-[0.2em] uppercase text-[#D5851F] font-mono">
+                  A GOOD PLACE TO BEGIN
+                </span>
+              </div>
 
-        {/* Social Proof Line */}
-        <div className="mt-7 flex items-center gap-3 text-xs text-[#526358]">
-          <div className="flex -space-x-1.5 overflow-hidden">
-            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#e3d7bf] text-[10px] font-bold text-[#5c4d32] border border-white shadow-2xs">
-              AK
-            </span>
-            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#d6decb] text-[10px] font-bold text-[#3d502f] border border-white shadow-2xs">
-              SM
-            </span>
-            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#dfd3cb] text-[10px] font-bold text-[#5c4032] border border-white shadow-2xs">
-              RJ
-            </span>
-          </div>
-          <span className="text-[11px] sm:text-xs">
-            Made for curious people who like to <strong className="font-semibold text-[#14231b]">get things done.</strong>
-          </span>
-        </div>
+              {/* Main Headline */}
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-[#FAF8F5] leading-[1.12]">
+                Your next big idea<br />
+                <span className="text-[#87A96B]">starts right here.</span>
+              </h1>
 
-        {/* Hero Showcase Card (Tactile Realistic Editorial Book) */}
-        <div className="mt-8 rounded-3xl bg-gradient-to-b from-[#eeebe3] to-[#e4e0d4] p-4 sm:p-7 relative overflow-hidden border border-[#dedad0] shadow-sm">
-          {/* Inner Book / Guide Mockup */}
-          <div className="bg-white rounded-2xl p-5 sm:p-8 max-w-lg mx-auto shadow-[0_12px_40px_rgba(20,35,27,0.08)] border border-[#e5e2d6] relative">
-            {/* Book spine gradient on left */}
-            <div className="absolute left-0 top-0 bottom-0 w-2.5 bg-gradient-to-r from-black/5 to-transparent rounded-l-2xl pointer-events-none" />
+              {/* Subtitle */}
+              <p className="text-xs sm:text-sm text-[#ddd7cc] leading-relaxed max-w-xs font-normal">
+                Your digital bookshelf is ready for the things you choose to learn.
+              </p>
 
-            <div className="flex items-center justify-between pb-6 border-b border-[#f3f1ea]">
-              <BrandLogo size="sm" />
-              <div className="text-right">
-                <p className="text-[11px] font-bold text-[#14231b] flex items-center justify-end gap-1">
-                  <Check className="w-3 h-3 text-[#3c7155]" />
-                  <span>Pay once. Keep it.</span>
-                </p>
-                <p className="text-[10px] text-[#718277]">One-time purchase · Instant access</p>
+              {/* Action Pill with Amber Glow Accent */}
+              <div className="pt-2 flex items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#D5851F] hover:bg-[#bd7417] text-white text-[11px] font-bold shadow-sm transition-all group-hover:scale-105 active:scale-95 cursor-pointer">
+                  <span>Explore Collection</span>
+                  <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
+                </span>
               </div>
             </div>
 
-            <div className="py-6 space-y-2">
-              <span className="text-[10px] font-bold tracking-widest uppercase text-[#3c7155] font-mono">
-                A BETTER WAY TO BEGIN
-              </span>
-              <h3 className="text-2xl sm:text-3xl font-extrabold text-[#14231b] tracking-tight leading-snug">
-                Ideas into<br />something real.
-              </h3>
-              <p className="text-xs sm:text-sm text-[#5d6e63] max-w-sm pt-1 leading-relaxed">
-                A practical little guide for your next big move. Clear steps, useful prompts, no unnecessary noise.
-              </p>
-            </div>
+            {/* Right Column: 3D Animated Floating Booklet (SMART BANAO VOL. 01) in Sage Green & Walnut Brown */}
+            <div className="shrink-0 w-24 sm:w-32 md:w-36 animate-float-slow">
+              <div className="relative aspect-[3/4] rounded-2xl bg-[#87A96B] text-[#2F2116] p-3 sm:p-4 shadow-[0_18px_32px_rgba(0,0,0,0.4)] border border-[#a2c287] flex flex-col justify-between overflow-hidden transform -rotate-3 group-hover:rotate-0 transition-transform duration-500">
+                {/* Book Spine Shading */}
+                <div className="absolute left-0 top-0 bottom-0 w-2.5 bg-gradient-to-r from-black/25 to-transparent" />
 
-            {/* Overlapping organic circles visual */}
-            <div className="pt-4 flex items-center gap-2">
-              <div className="w-16 h-16 rounded-full bg-[#dbe4df] shadow-inner" />
-              <div className="w-20 h-20 -ml-8 rounded-full bg-[#234b38] shadow-md" />
-              <div className="w-12 h-12 -ml-6 rounded-full bg-[#8ba89a] shadow-xs" />
-            </div>
+                {/* Booklet Header */}
+                <div className="relative z-10 pl-1">
+                  <p className="text-[8px] sm:text-[9px] font-black tracking-widest font-mono uppercase text-[#3D291C]">
+                    SMART BANAO · VOL. 01
+                  </p>
+                </div>
 
-            {/* Floating pill badge */}
-            <div className="mt-4 p-2.5 rounded-xl bg-[#faf9f5] border border-[#e8e6dc] inline-flex flex-col text-[10px] shadow-2xs">
-              <span className="font-bold text-[#14231b]">Made to use, not just save.</span>
-              <span className="text-[#65776c] flex items-center gap-1 mt-0.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#3c7155]" />
-                Practical, step-by-step resources
-              </span>
+                {/* Booklet Title */}
+                <div className="relative z-10 pl-1 space-y-1">
+                  <p className="text-[11px] sm:text-[13px] font-extrabold leading-tight tracking-tight text-[#2B1D14]">
+                    Make room for growth.
+                  </p>
+                  <div className="w-6 h-1 rounded-full bg-[#D5851F] mt-1" />
+                </div>
+
+                {/* Corner Fold */}
+                <div className="absolute right-0 top-0 w-4 h-4 bg-black/15 rounded-bl-lg" />
+              </div>
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* 4 Feature Badges under Hero */}
-        <div className="mt-8 text-center space-y-3">
-          <p className="text-xs font-bold text-[#14231b]">Good resources should feel simple.</p>
-          <div className="flex flex-wrap items-center justify-center gap-2 text-[11px] font-medium text-[#44564c]">
-            <span className="px-3.5 py-1.5 rounded-full bg-white border border-[#dedad0] shadow-2xs hover:shadow-xs transition-shadow">
-              🪄 Clear, practical lessons
-            </span>
-            <span className="px-3.5 py-1.5 rounded-full bg-white border border-[#dedad0] shadow-2xs hover:shadow-xs transition-shadow">
-              ⬇️ Digital access
-            </span>
-            <span className="px-3.5 py-1.5 rounded-full bg-white border border-[#dedad0] shadow-2xs hover:shadow-xs transition-shadow">
-              ✔️ One-time payment
-            </span>
-            <span className="px-3.5 py-1.5 rounded-full bg-white border border-[#dedad0] shadow-2xs hover:shadow-xs transition-shadow">
-              🤍 Made for real life
-            </span>
-          </div>
-        </div>
-      </section>
-
-      {/* ==============================================================
-          2. BUNDLES SECTION (Plan A & Plan B)
-          ============================================================== */}
-      <section id="bundles-section" className="px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto scroll-mt-20">
-        <div className="space-y-1 mb-6">
-          <div className="flex items-center gap-2 text-[11px] font-bold tracking-widest uppercase text-[#54685c]">
-            <span className="w-2 h-2 rounded-full bg-[#3c7155]" />
-            <span>Start with a little more</span>
-          </div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-[#14231b] tracking-tight">
-            Bundles that make sense.
-          </h2>
-          <p className="text-xs sm:text-sm text-[#5c6d62] max-w-xl">
-            Pick a set that matches where you are right now. One payment, a focused collection, and room to make it your own.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {bundles.map((bundle) => {
-            const isAllOwned = bundle.included_product_ids?.every((pid) =>
-              userOwnedProductIds.includes(pid)
-            );
-            return (
-              <BundleCard
-                key={bundle.id}
-                bundle={bundle}
-                onSelect={onSelectBundle}
-                onBuyNow={onBuyBundle}
-                isAllOwned={isAllOwned}
-              />
-            );
-          })}
-        </div>
-
-        <p className="mt-3 text-[11px] text-[#7d8e83]">
-          Sample bundle pricing for layout preview. Replace with your confirmed product details before publishing.
-        </p>
-      </section>
-
-      {/* ==============================================================
-          3. DIGITAL SHELF / CATALOG (2 Per Row on Mobile)
-          ============================================================== */}
-      <section id="shelf-section" className="px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto scroll-mt-20">
-        <div className="space-y-1 mb-5">
-          <div className="flex items-center gap-2 text-[11px] font-bold tracking-widest uppercase text-[#54685c]">
-            <span className="w-2 h-2 rounded-full bg-[#3c7155]" />
-            <span>The Digital Shelf</span>
-          </div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-[#14231b] tracking-tight">
-            Find your next useful thing.
-          </h2>
-          <p className="text-xs sm:text-sm text-[#5c6d62] max-w-xl">
-            Guides, templates and learning resources, designed to be clear, considered and easy to put to work.
-          </p>
-        </div>
-
-        {/* Search & Filter pills matching screenshot */}
-        <div className="space-y-3 mb-6">
-          <div className="flex items-center gap-2">
-            <div className="relative flex-1">
-              <Search className="w-4 h-4 text-[#8b9c91] absolute left-3.5 top-3" />
-              <input
-                type="text"
-                placeholder="Search guides, templates, courses..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    const q = searchQuery.trim().toLowerCase();
-                    if (q === 'admin' || q === 'admin.php' || q === '/admin' || q.includes('admin')) {
-                      onNavigate('admin-portal');
-                    }
-                  }
-                }}
-                className="w-full pl-9 pr-3 py-2.5 text-xs sm:text-sm bg-white rounded-full border border-[#dedad0] text-[#14231b] placeholder-[#8b9c91] focus:outline-none focus:ring-1 focus:ring-[#1b3428] shadow-2xs"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-2.5 text-xs text-[#8b9c91] hover:text-[#14231b]"
-                >
-                  Clear
-                </button>
-              )}
-            </div>
-            <button
-              onClick={() => setActiveTab('all')}
-              className={`px-4 py-2.5 text-xs font-semibold rounded-full transition-colors ${
-                activeTab === 'all'
-                  ? 'bg-[#1b3428] text-white shadow-xs'
-                  : 'bg-white text-[#44564c] border border-[#dedad0] hover:bg-[#f2f1eb]'
+        {/* =========================================================================
+            2. SECOND SECTION: TWO FEATURED PRODUCTS (IMG 637)
+            - Digital Product Launch Kit (₹89)
+            - The Idea-to-Action Workbook (₹69)
+            Palette: Warm Terracotta & Sage Green with Walnut Brown Typography & Amber Accents
+            ========================================================================= */}
+        <section id="section-products-637" className="w-full space-y-3 scroll-mt-20">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4.5">
+            
+            {/* Product Card 1: Digital Product Launch Kit (Warm Terracotta / Peach) */}
+            <div
+              className={`group bg-white rounded-[24px] border border-[#e8e2d8] overflow-hidden shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between ${
+                addedAnimationId === launchKitProduct.id ? 'ring-2 ring-[#5A3E2B] scale-[0.98]' : ''
               }`}
             >
-              Everything
-            </button>
+              {/* Header Artwork Graphic: Clicking opens payment page directly */}
+              <div
+                onClick={() => handleBuyWithAnimation(launchKitProduct)}
+                className="cursor-pointer p-4 sm:p-5 aspect-[1.12/1] bg-[#eddcd5] text-[#4a2e26] relative overflow-hidden flex flex-col justify-between select-none border-b border-[#dfcbbe] group-hover:brightness-[1.02] transition-all"
+              >
+                {/* Fluid Organic Curves */}
+                <div className="absolute -right-6 -bottom-6 w-32 h-32 rounded-full bg-[#dfc5ba] opacity-60 pointer-events-none group-hover:scale-110 transition-transform duration-500" />
+                <div className="absolute right-4 -bottom-4 w-20 h-20 rounded-full bg-[#d2b4a7] opacity-75 pointer-events-none group-hover:scale-105 transition-transform duration-500" />
+
+                <div className="relative z-10 space-y-0.5">
+                  <p className="text-[8px] sm:text-[9px] font-bold tracking-widest uppercase opacity-80 font-mono text-[#5A3E2B]">
+                    A SMALL LAUNCH PLAN
+                  </p>
+                  <h3 className="text-base sm:text-lg font-black tracking-tight leading-snug text-[#3d241d]">
+                    Ready when<br />you are.
+                  </h3>
+                </div>
+
+                <div className="relative z-10 pt-2 flex items-center justify-between text-[8px] sm:text-[9px] font-mono tracking-wider uppercase opacity-90">
+                  <span className="text-[#5A3E2B] font-bold">LAUNCH TOOLKIT</span>
+                  <span className="px-1.5 py-0.5 rounded bg-[#D5851F]/15 text-[#5A3E2B] font-extrabold border border-[#D5851F]/30">05 / PDF</span>
+                </div>
+              </div>
+
+              {/* Body Details */}
+              <div className="p-3.5 sm:p-4 flex-1 flex flex-col justify-between space-y-3 bg-white">
+                <div>
+                  <div className="flex items-center justify-between text-[10px] font-medium text-[#7d7065] mb-1">
+                    <span className="uppercase font-mono tracking-wider">CHECKLIST · PDF</span>
+                    <span className="text-[#D5851F] font-bold">Quick start</span>
+                  </div>
+
+                  <h4
+                    onClick={() => handleBuyWithAnimation(launchKitProduct)}
+                    className="text-xs sm:text-sm font-bold text-[#5A3E2B] hover:text-[#87A96B] transition-colors cursor-pointer leading-tight line-clamp-1"
+                  >
+                    Digital Product Launch Kit
+                  </h4>
+
+                  <p className="text-[11px] text-[#716358] mt-1 leading-relaxed line-clamp-2">
+                    Keep the essential launch tasks together in one tidy checklist.
+                  </p>
+                </div>
+
+                {/* Pricing and Spring Plus Button */}
+                <div className="pt-2 border-t border-[#f2ede4] flex items-center justify-between gap-1.5">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-base sm:text-lg font-black text-[#5A3E2B] font-mono">
+                      ₹89
+                    </span>
+                    <span className="text-[11px] text-[#a49589] line-through font-mono">
+                      ₹349
+                    </span>
+                  </div>
+
+                  <button
+                    onClick={() => handleBuyWithAnimation(launchKitProduct)}
+                    className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#f4f0e9] hover:bg-[#5A3E2B] text-[#5A3E2B] hover:text-white border border-[#e4ddcf] flex items-center justify-center transition-all duration-200 shadow-2xs hover:shadow-md hover:scale-110 active:scale-90 cursor-pointer"
+                    aria-label="Buy Digital Product Launch Kit"
+                  >
+                    {userOwnedProductIds.includes(launchKitProduct.id) ? (
+                      <Check className="w-4 h-4 text-[#87A96B] stroke-[3]" />
+                    ) : (
+                      <Plus className="w-4 h-4 stroke-[2.5]" />
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Product Card 2: The Idea-to-Action Workbook (Sage Green Tint) */}
+            <div
+              className={`group bg-white rounded-[24px] border border-[#e8e2d8] overflow-hidden shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between ${
+                addedAnimationId === ideaWorkbookProduct.id ? 'ring-2 ring-[#5A3E2B] scale-[0.98]' : ''
+              }`}
+            >
+              {/* Header Artwork Graphic: Clicking opens payment page directly */}
+              <div
+                onClick={() => handleBuyWithAnimation(ideaWorkbookProduct)}
+                className="cursor-pointer p-4 sm:p-5 aspect-[1.12/1] bg-[#dce8d5] text-[#2d3923] relative overflow-hidden flex flex-col justify-between select-none border-b border-[#c8dac0] group-hover:brightness-[1.02] transition-all"
+              >
+                {/* Fluid Organic Curves */}
+                <div className="absolute -right-6 -bottom-6 w-32 h-32 rounded-full bg-[#c6dcbc] opacity-60 pointer-events-none group-hover:scale-110 transition-transform duration-500" />
+                <div className="absolute right-4 -bottom-4 w-20 h-20 rounded-full bg-[#b8d2ad] opacity-75 pointer-events-none group-hover:scale-105 transition-transform duration-500" />
+
+                <div className="relative z-10 space-y-0.5">
+                  <p className="text-[8px] sm:text-[9px] font-bold tracking-widest uppercase opacity-80 font-mono text-[#435934]">
+                    A LITTLE CLARITY
+                  </p>
+                  <h3 className="text-base sm:text-lg font-black tracking-tight leading-snug text-[#2b3a20]">
+                    Make the<br />idea clearer.
+                  </h3>
+                </div>
+
+                <div className="relative z-10 pt-2 flex items-center justify-between text-[8px] sm:text-[9px] font-mono tracking-wider uppercase opacity-90">
+                  <span className="text-[#3c502f] font-bold">IDEA WORKBOOK</span>
+                  <span className="px-1.5 py-0.5 rounded bg-[#87A96B]/25 text-[#2a381f] font-extrabold border border-[#87A96B]/40">06 / PDF</span>
+                </div>
+              </div>
+
+              {/* Body Details */}
+              <div className="p-3.5 sm:p-4 flex-1 flex flex-col justify-between space-y-3 bg-white">
+                <div>
+                  <div className="flex items-center justify-between text-[10px] font-medium text-[#7d7065] mb-1">
+                    <span className="uppercase font-mono tracking-wider">WORKBOOK · PDF</span>
+                    <span className="text-[#87A96B] font-bold">Printable</span>
+                  </div>
+
+                  <h4
+                    onClick={() => handleBuyWithAnimation(ideaWorkbookProduct)}
+                    className="text-xs sm:text-sm font-bold text-[#5A3E2B] hover:text-[#87A96B] transition-colors cursor-pointer leading-tight line-clamp-1"
+                  >
+                    The Idea-to-Action Workbook
+                  </h4>
+
+                  <p className="text-[11px] text-[#716358] mt-1 leading-relaxed line-clamp-2">
+                    Prompts to sort your thoughts and turn one idea into a plan.
+                  </p>
+                </div>
+
+                {/* Pricing and Spring Plus Button */}
+                <div className="pt-2 border-t border-[#f2ede4] flex items-center justify-between gap-1.5">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-base sm:text-lg font-black text-[#5A3E2B] font-mono">
+                      ₹69
+                    </span>
+                    <span className="text-[11px] text-[#a49589] line-through font-mono">
+                      ₹299
+                    </span>
+                  </div>
+
+                  <button
+                    onClick={() => handleBuyWithAnimation(ideaWorkbookProduct)}
+                    className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#f4f0e9] hover:bg-[#5A3E2B] text-[#5A3E2B] hover:text-white border border-[#e4ddcf] flex items-center justify-center transition-all duration-200 shadow-2xs hover:shadow-md hover:scale-110 active:scale-90 cursor-pointer"
+                    aria-label="Buy The Idea-to-Action Workbook"
+                  >
+                    {userOwnedProductIds.includes(ideaWorkbookProduct.id) ? (
+                      <Check className="w-4 h-4 text-[#87A96B] stroke-[3]" />
+                    ) : (
+                      <Plus className="w-4 h-4 stroke-[2.5]" />
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        {/* =========================================================================
+            3. THIRD SECTION: THREE VERIFIED CUSTOMER REVIEWS (IMG 817)
+            Amber Glow 5-Star Ratings (#D5851F), Sage Green Rings (#87A96B), Walnut Typography (#5A3E2B)
+            ========================================================================= */}
+        <section className="w-full space-y-3">
+          {/* Card 1: Reviewer R */}
+          <div className="p-4 sm:p-5 bg-white rounded-[22px] border border-[#e8e2d8] shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 space-y-2.5">
+            <div className="flex items-center gap-1 text-[#D5851F]">
+              {[...Array(5)].map((_, i) => (
+                <Star key={i} className="w-3.5 h-3.5 fill-[#D5851F] text-[#D5851F]" />
+              ))}
+            </div>
+            <p className="text-xs sm:text-sm text-[#3A2A1E] leading-relaxed font-normal">
+              “I finally had a clear place to start instead of saving another hundred tips.”
+            </p>
+            <div className="flex items-center gap-2.5 pt-0.5">
+              <div className="w-7 h-7 rounded-full bg-[#87A96B]/20 text-[#5A3E2B] font-bold text-xs flex items-center justify-center shrink-0 border border-[#87A96B]/40">
+                R
+              </div>
+              <div>
+                <p className="text-xs font-bold text-[#5A3E2B] flex items-center gap-1">
+                  <span>Review example</span>
+                  <CheckCircle2 className="w-3 h-3 text-[#87A96B]" />
+                </p>
+                <p className="text-[10px] text-[#8c7d71]">Verified customer</p>
+              </div>
+            </div>
           </div>
 
-          {/* Discreet admin shortcut hint ONLY if user explicitly types "admin" */}
-          {searchQuery.toLowerCase().includes('admin') && (
-            <div
-              onClick={() => onNavigate('admin-portal')}
-              className="p-3 bg-slate-900 text-cyan-300 rounded-2xl border border-slate-800 text-xs flex items-center justify-between cursor-pointer hover:bg-slate-850 shadow-md animate-in fade-in duration-150"
-            >
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
-                <span className="font-mono font-bold text-white">🔒 Administrator Security Gateway Detected</span>
-              </div>
-              <span className="text-[11px] underline text-cyan-400 font-semibold">Open Login Portal →</span>
+          {/* Card 2: Reviewer S */}
+          <div className="p-4 sm:p-5 bg-white rounded-[22px] border border-[#e8e2d8] shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 space-y-2.5">
+            <div className="flex items-center gap-1 text-[#D5851F]">
+              {[...Array(5)].map((_, i) => (
+                <Star key={i} className="w-3.5 h-3.5 fill-[#D5851F] text-[#D5851F]" />
+              ))}
             </div>
-          )}
+            <p className="text-xs sm:text-sm text-[#3A2A1E] leading-relaxed font-normal">
+              “Simple to follow, and I could put the steps to use straight away.”
+            </p>
+            <div className="flex items-center gap-2.5 pt-0.5">
+              <div className="w-7 h-7 rounded-full bg-[#87A96B]/20 text-[#5A3E2B] font-bold text-xs flex items-center justify-center shrink-0 border border-[#87A96B]/40">
+                S
+              </div>
+              <div>
+                <p className="text-xs font-bold text-[#5A3E2B] flex items-center gap-1">
+                  <span>Review example</span>
+                  <CheckCircle2 className="w-3 h-3 text-[#87A96B]" />
+                </p>
+                <p className="text-[10px] text-[#8c7d71]">Verified customer</p>
+              </div>
+            </div>
+          </div>
 
-          <div className="flex items-center gap-2">
-            {[
-              { id: 'ebook', label: 'eBooks' },
-              { id: 'template', label: 'Templates' },
-              { id: 'course', label: 'Courses' },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(activeTab === tab.id ? 'all' : tab.id)}
-                className={`px-4 py-1.5 rounded-full text-xs font-medium border transition-colors ${
-                  activeTab === tab.id
-                    ? 'bg-[#1b3428] text-white border-[#1b3428] shadow-2xs'
-                    : 'bg-white text-[#56685c] border-[#dedad0] hover:bg-[#f2f1eb]'
+          {/* Card 3: Reviewer A */}
+          <div className="p-4 sm:p-5 bg-white rounded-[22px] border border-[#e8e2d8] shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 space-y-2.5">
+            <div className="flex items-center gap-1 text-[#D5851F]">
+              {[...Array(5)].map((_, i) => (
+                <Star key={i} className="w-3.5 h-3.5 fill-[#D5851F] text-[#D5851F]" />
+              ))}
+            </div>
+            <p className="text-xs sm:text-sm text-[#3A2A1E] leading-relaxed font-normal">
+              “I liked that it focused on the useful bits without making things complicated.”
+            </p>
+            <div className="flex items-center gap-2.5 pt-0.5">
+              <div className="w-7 h-7 rounded-full bg-[#87A96B]/20 text-[#5A3E2B] font-bold text-xs flex items-center justify-center shrink-0 border border-[#87A96B]/40">
+                A
+              </div>
+              <div>
+                <p className="text-xs font-bold text-[#5A3E2B] flex items-center gap-1">
+                  <span>Review example</span>
+                  <CheckCircle2 className="w-3 h-3 text-[#87A96B]" />
+                </p>
+                <p className="text-[10px] text-[#8c7d71]">Verified customer</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* =========================================================================
+            4. FOURTH SECTION: INSPIRED BY ACHARYA PRASHANT & OUR AIMS (IMG 908)
+            Walnut Brown (#5A3E2B), Sage Green Halo (#87A96B), Amber Glow Dots (#D5851F)
+            ========================================================================= */}
+        <section className="w-full bg-white rounded-[28px] p-5 sm:p-7 border border-[#e8e2d8] shadow-sm space-y-7 relative overflow-hidden transition-all duration-300">
+          
+          {/* 1. Inspired By ~ Acharya Prashant */}
+          <div className="text-center space-y-3.5">
+            <h3 className="text-base sm:text-lg font-bold font-serif text-[#5A3E2B] tracking-wide">
+              Inspired By ~
+            </h3>
+
+            {/* Circular Portrait with Ambient Sage Green & Amber Glow Ring */}
+            <div className="flex justify-center">
+              <div className="relative group/portrait">
+                <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden border-2 border-white shadow-lg ring-3 ring-[#87A96B] bg-[#3B291D]">
+                  <img
+                    src="/assets/aistudio/IMG_20261021_120908_081522ec.jpg"
+                    alt="Acharya Prashant"
+                    className="w-full h-full object-cover object-[center_17%] scale-135 group-hover/portrait:scale-145 transition-transform duration-700"
+                  />
+                </div>
+                {/* Micro accent badge */}
+                <div className="absolute -bottom-1 right-1 w-6 h-6 rounded-full bg-[#D5851F] text-white flex items-center justify-center shadow-md">
+                  <Sparkles className="w-3.5 h-3.5" />
+                </div>
+              </div>
+            </div>
+
+            {/* Name */}
+            <h4 className="text-lg sm:text-xl font-extrabold text-[#3D291C] tracking-tight">
+              Acharya Prashant
+            </h4>
+
+            {/* Hindi Wisdom Quote with Smooth Fade Slide */}
+            <div className="max-w-md mx-auto px-2 min-h-[75px] flex items-center justify-center">
+              <p
+                className={`text-xs sm:text-sm font-medium text-[#4D3A2C] leading-relaxed transition-opacity duration-300 ${
+                  isQuoteFading ? 'opacity-0 scale-98' : 'opacity-100 scale-100'
                 }`}
               >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* 2 Product Cards per row */}
-        <div className="grid grid-cols-2 gap-3 sm:gap-5">
-          {filteredProducts.map((product) => {
-            const isOwned = userOwnedProductIds.includes(product.id);
-            return (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onSelect={onSelectProduct}
-                onBuyNow={onBuyProduct}
-                onLookInside={(p) => setPreviewProduct(p)}
-                isOwned={isOwned}
-              />
-            );
-          })}
-        </div>
-
-        <p className="mt-4 text-[11px] text-[#7d8e83]">
-          The titles, artwork and prices above are design placeholders. Add only products you actually sell; do not publish fabricated claims.
-        </p>
-      </section>
-
-      {/* Responsive In-Feed Ad Banner (Admin Controlled) */}
-      <AdBanner position="in_feed" adsSettings={adsSettings} isVipUser={isVipUser} />
-
-      {/* ==============================================================
-          4. NOTE FROM THE COMMUNITY (Customer Feedback)
-          ============================================================== */}
-      <section className="px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
-        <div className="space-y-1 mb-6">
-          <div className="flex items-center gap-2 text-[11px] font-bold tracking-widest uppercase text-[#54685c]">
-            <span className="w-2 h-2 rounded-full bg-[#3c7155]" />
-            <span>A note from the community</span>
-          </div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-[#14231b] tracking-tight">
-            Good work speaks quietly.
-          </h2>
-          <p className="text-xs sm:text-sm text-[#5c6d62] max-w-xl">
-            We want this space to earn trust through useful products and honest feedback—not inflated promises.
-          </p>
-        </div>
-
-        <div className="space-y-3">
-          {reviews.map((rev) => (
-            <div
-              key={rev.id}
-              className="p-5 bg-white rounded-2xl border border-[#dedad0] shadow-2xs space-y-3 hover:shadow-xs transition-shadow"
-            >
-              <div className="flex items-center gap-1 text-[#224b38]">
-                {'★★★★★'}
-              </div>
-              <p className="text-xs sm:text-sm text-[#27382f] leading-relaxed font-normal">
-                "{rev.comment}"
+                "{ACHARYA_QUOTES[activeQuoteIndex].quote}"
               </p>
-              <div className="flex items-center gap-2.5 pt-1">
-                <div className="w-7 h-7 rounded-full bg-[#e3e0d5] text-[#44564c] font-bold text-xs flex items-center justify-center">
-                  {rev.author_name.charAt(0)}
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-[#14231b]">{rev.author_name}</p>
-                  <p className="text-[10px] text-[#7d8e83]">{rev.author_role || 'Replace with a verified customer'}</p>
-                </div>
-              </div>
             </div>
-          ))}
-        </div>
 
-        <p className="mt-3 text-[11px] text-[#7d8e83]">
-          These are illustrative review placeholders, not real testimonials. Replace them with genuine customer feedback before launch.
-        </p>
-      </section>
-
-      {/* ==============================================================
-          5. FAQS ACCORDION
-          ============================================================== */}
-      <section className="px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
-        <div className="space-y-1 mb-6">
-          <div className="flex items-center gap-2 text-[11px] font-bold tracking-widest uppercase text-[#54685c]">
-            <span className="w-2 h-2 rounded-full bg-[#3c7155]" />
-            <span>Before you begin</span>
-          </div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-[#14231b] tracking-tight">
-            A few things worth knowing.
-          </h2>
-          <p className="text-xs sm:text-sm text-[#5c6d62] max-w-xl">
-            Clear answers, no fine-print surprises. If something is still unclear, contact us before purchasing.
-          </p>
-        </div>
-
-        <div className="divide-y divide-[#dedad0] border-y border-[#dedad0]">
-          {faqs.map((faq, index) => {
-            const isOpen = openFaq === index;
-            return (
-              <div key={index} className="py-3.5">
+            {/* 5 Carousel Dots with Amber Glow Indicator */}
+            <div className="flex items-center justify-center gap-2 pt-0.5">
+              {ACHARYA_QUOTES.map((_, idx) => (
                 <button
-                  onClick={() => setOpenFaq(isOpen ? null : index)}
-                  className="w-full flex items-center justify-between text-left py-1 group"
-                >
-                  <span className="text-xs sm:text-sm font-bold text-[#14231b] group-hover:text-[#234c37] transition-colors">
-                    {faq.q}
-                  </span>
-                  <span className="text-base text-[#56685c] group-hover:text-[#14231b] transition-colors">
-                    {isOpen ? '−' : '+'}
-                  </span>
-                </button>
-                {isOpen && (
-                  <p className="mt-2 text-xs text-[#526358] leading-relaxed pr-6 animate-in fade-in duration-150">
-                    {faq.a}
-                  </p>
-                )}
+                  key={idx}
+                  onClick={() => handleNextQuote(idx)}
+                  className={`h-2.5 rounded-full transition-all duration-300 cursor-pointer ${
+                    activeQuoteIndex === idx
+                      ? 'w-6 bg-[#D5851F] shadow-[0_2px_8px_rgba(213,133,31,0.5)]'
+                      : 'w-2.5 bg-[#e4ded5] hover:bg-[#87A96B]'
+                  }`}
+                  aria-label={`Show wisdom quote ${idx + 1}`}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div className="border-t border-[#f2ede4]" />
+
+          {/* 2. Our Aims (Exact text from Screenshot 908) */}
+          <div className="text-center space-y-4">
+            <h3 className="text-2xl sm:text-3xl font-extrabold font-serif text-[#5A3E2B] tracking-tight">
+              Our Aims
+            </h3>
+
+            <div className="space-y-3.5 text-xs sm:text-sm text-[#5D4A3C] leading-relaxed text-center sm:text-justify px-1 sm:px-4 font-normal">
+              <p>
+                हमारा उद्देश्य है कि हम भारत में ज़्यादा से ज़्यादा लोगों को रोज़गार दे सकें, इसलिए हमने एक ऐसा बिज़नेस मॉडल तैयार किया है जो युवाओं को स्किल के साथ-साथ इनकम भी प्रदान करता है।
+              </p>
+              <div className="p-3 bg-[#FAF8F5] rounded-2xl border-l-4 border-[#87A96B] text-[#3D291C] font-semibold text-left">
+                अभी के समय में हर एक बच्चे को ऑनलाइन बिज़नेस करना ही चाहिए, चाहे वह स्कूल में हो या कॉलेज में, क्योंकि हर किसी को रोज़गार देना सरकार के लिए भी संभव नहीं है।
               </div>
-            );
-          })}
-        </div>
-      </section>
+              <p>
+                हम जो बिज़नेस आइडिया प्रदान करते हैं, उससे यूज़र्स अनलिमिटेड आइडिया खुद भी क्रिएट कर सकते हैं, जिसकी वजह से इस बिज़नेस मॉडल में कभी कोई कॉम्पटीशन नहीं आता है।
+              </p>
+            </div>
+          </div>
+        </section>
+
+      </div>
 
       {/* Interactive Look Inside Modal */}
       {previewProduct && (

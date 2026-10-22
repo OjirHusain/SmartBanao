@@ -191,6 +191,8 @@ export interface SiteSettings {
   announcement?: string;
   razorpay_key_id?: string;
   razorpay_configured: boolean;
+  payment_gateway?: string;
+  manual_upi_id?: string;
   ads?: AdSettings;
 }
 

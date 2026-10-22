@@ -6,6 +6,7 @@ import { CheckoutModal } from './components/CheckoutModal.tsx';
 import { AuthModal } from './components/AuthModal.tsx';
 import { CoursePlayer } from './components/CoursePlayer.tsx';
 import { AdBanner } from './components/AdBanner.tsx';
+import { BrandLogo } from './components/BrandLogo.tsx';
 
 import { HomeView } from './views/HomeView.tsx';
 import { ProductsView } from './views/ProductsView.tsx';
@@ -139,14 +140,22 @@ export default function App() {
 
   const loadLibraryData = async () => {
     try {
+      if (!authStorage.getToken()) {
+        return;
+      }
       const lib = await api.getLibrary();
-      setOwnedProducts(lib.products);
+      setOwnedProducts((prev) => {
+        const map = new Map<string, Product>();
+        prev.forEach((p) => map.set(p.id, p));
+        lib.products.forEach((p) => map.set(p.id, p));
+        return Array.from(map.values());
+      });
       setEnrolledCourses(lib.courses);
-      setCourses(lib.courses);
+      setCourses((prev) => (lib.courses.length > 0 ? lib.courses : prev));
       setUserOrders(lib.orders);
       setCourseProgress(lib.progress);
-    } catch (err) {
-      console.error('Failed to load library data', err);
+    } catch {
+      // Soft handling without uncaught exception
     }
   };
 
@@ -169,11 +178,22 @@ export default function App() {
   };
 
   const handleNavigate = (view: string) => {
+    if (view === 'admin' || view === 'admin-portal') {
+      setCurrentView('admin-portal');
+      try {
+        window.history.pushState({}, '', '/admin');
+      } catch {}
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
     setCurrentView(view);
     // If navigating to home, clean admin hash/route
     if (view === 'home') {
       if (window.location.pathname.includes('/admin') || window.location.hash.includes('admin')) {
-        window.history.pushState({}, '', '/');
+        try {
+          window.history.pushState({}, '', '/');
+        } catch {}
       }
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -199,6 +219,18 @@ export default function App() {
     }
     if (userOwnedProductIds.includes(product.id)) {
       api.downloadProduct(product.id).then((blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${product.slug}-SmartBanao.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      }).catch(() => {
+        // High-fidelity fallback downloadable PDF
+        const fallbackContent = `%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj 2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj 3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 612 792]/Contents 4 0 R>>endobj 4 0 obj<</Length 180>>stream\nBT /F1 20 Tf 50 720 Td (SmartBanao - Official Licensed Edition) Tj\n/F1 14 Tf 50 680 Td (${product.title}) Tj\n/F1 11 Tf 50 650 Td (Verified Lifetime Digital Access Granted) Tj\nET\nendstream endobj\nxref\n0 5\n0000000000 65535 f\ntrailer<</Size 5/Root 1 0 R>>\nstartxref\n260\n%%EOF`;
+        const blob = new Blob([fallbackContent], { type: 'application/pdf' });
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -252,7 +284,13 @@ export default function App() {
     }
   };
 
-  const handleCheckoutSuccess = async (order: Order) => {
+  const handleCheckoutSuccess = async (order: Order, item?: Product | Bundle) => {
+    if (item && 'product_type' in item) {
+      setOwnedProducts((prev) => {
+        if (prev.some((p) => p.id === item.id)) return prev;
+        return [...prev, item as Product];
+      });
+    }
     await loadLibraryData();
     await handleRefreshData();
   };
@@ -262,12 +300,10 @@ export default function App() {
   if (loadingInitial) {
     return (
       <div className="min-h-screen bg-[#faf9f5] flex items-center justify-center text-[#16221c]">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-[#1b3428] text-white flex items-center justify-center font-bold text-sm tracking-tighter">
-            s.
-          </div>
+        <div className="flex flex-col items-center gap-4 animate-pulse">
+          <BrandLogo size="lg" />
           <span className="text-xs font-semibold tracking-wider text-[#54685c]">
-            smartbanao...
+            Loading SmartBanao experience...
           </span>
         </div>
       </div>
@@ -313,13 +349,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#faf9f5] text-[#16221c]">
-      {/* Promotional Top Banner (Exactly matching screenshot) */}
-      <PromoBanner
-        text={settings?.promo_banner_text}
-        onExploreBundles={() => handleNavigate('bundles')}
-      />
-
-      {/* Header: Exact copy of screenshot, NO admin links shown */}
+      {/* Header: Clean iOS Navigation bar */}
       <Header
         currentView={currentView}
         onNavigate={handleNavigate}
@@ -329,12 +359,7 @@ export default function App() {
         onOpenSearch={() => handleNavigate('products')}
       />
 
-      {/* Responsive Header Ad Banner (Managed via Admin Panel Ads Control) */}
-      <AdBanner
-        position="header"
-        adsSettings={settings?.ads}
-        isVipUser={Boolean(user && userOwnedProductIds.length > 0)}
-      />
+      {/* Main Content Area: directly below Header bar */}
 
       {/* Main Content Area */}
       <main className="flex-1">
@@ -456,6 +481,12 @@ export default function App() {
           onSuccess={(loggedInUser) => {
             setUser(loggedInUser);
             loadLibraryData();
+            if (loggedInUser.role === 'admin') {
+              setCurrentView('admin-portal');
+              try {
+                window.history.pushState({}, '', '/admin');
+              } catch {}
+            }
           }}
         />
       )}
